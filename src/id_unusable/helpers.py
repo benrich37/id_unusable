@@ -134,7 +134,7 @@ def expected_bond_length(structure, idx1, idx2):
     r2 = covalent_radii[Element(el2).Z]
     return r1 + r2
 
-def get_outfile_path(calc_root: Path, get_expected_path: Callable | None = None):
+def get_outfile_path(calc_root: Path, get_expected_path: Callable[[Path], Path] | None = None):
     if not get_expected_path is None:
         return get_expected_path(calc_root)
     outfiles = list((calc_root).glob("*out"))
@@ -159,7 +159,7 @@ def get_outfile_path(calc_root: Path, get_expected_path: Callable | None = None)
             outfiles_by_last_modification = sorted(valid_outfiles, key=lambda f: f.stat().st_mtime, reverse=True)
             return outfiles_by_last_modification[0]
         
-def should_write_log(calc_root: Path, calc_root_is_finished: Callable | None = None):
+def should_write_log(calc_root: Path, calc_root_is_finished: Callable[[Path], bool] | None = None):
     if calc_root_is_finished is None:
         return True
     else:

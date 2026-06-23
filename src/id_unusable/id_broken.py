@@ -87,7 +87,13 @@ def calc_root_log_shows_broken(calc_root: Path, bond_scale_factor: float) -> boo
         return False
     return None
 
-def calc_root_is_broken_operate(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, write_log=True, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
+def calc_root_is_broken_operate(
+        calc_root: Path, ads_mol: str, 
+        bond_scale_factor=1.4, 
+        write_log=True, 
+        get_expected_path: Callable[[Path], Path] | None = None, 
+        calc_root_is_finished: Callable[[Path], bool] | None = None
+        ) -> bool | None:
     outfile_path = get_outfile_path(calc_root, get_expected_path=get_expected_path)
     if not outfile_path.exists():
         return None
@@ -107,7 +113,14 @@ exception_mols = [
 ]
 
 
-def calc_root_is_broken(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, check_log=True, write_log=True, test_new_algo: bool = False, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
+def calc_root_is_broken(
+        calc_root: Path, ads_mol: str, 
+        bond_scale_factor=1.4, 
+        check_log=True, write_log=True, 
+        test_new_algo: bool = False, 
+        get_expected_path: Callable[[Path], Path] | None = None, 
+        calc_root_is_finished: Callable[[Path], bool] | None = None
+        ) -> bool | None:
     if ads_mol in exception_mols:
         return False
     if test_new_algo:

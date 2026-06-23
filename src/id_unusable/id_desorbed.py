@@ -134,7 +134,13 @@ def calc_root_log_shows_desorbed_cma(calc_root: Path, cutoff: float) -> bool | N
     return None
 
 
-def calc_root_is_desorbed_cov_radii(calc_root: Path, ads_mol: str, bond_scale_factor=1.2, check_log=True, write_log=True, get_expected_path: Callable | None = None) -> bool:
+def calc_root_is_desorbed_cov_radii(
+        calc_root: Path, ads_mol: str, 
+        bond_scale_factor=1.2, 
+        check_log=True, write_log=True, 
+        get_expected_path: Callable[[Path], Path] | None = None, 
+        calc_root_is_finished: Callable[[Path], bool] | None = None
+        ) -> bool:
     if check_log:
         is_desorbed_log = calc_root_log_shows_desorbed(calc_root, bond_scale_factor)
         if not is_desorbed_log is None:
@@ -154,7 +160,13 @@ def calc_root_is_desorbed_cov_radii(calc_root: Path, ads_mol: str, bond_scale_fa
             _log_is_not_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
     return is_desorbed
 
-def calc_root_is_desorbed_cma(calc_root: Path, ads_mol: str, cutoff=def_cutoff, check_log=True, write_log=True, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
+def calc_root_is_desorbed_cma(
+        calc_root: Path, ads_mol: str, 
+        cutoff=def_cutoff, 
+        check_log=True, write_log=True, 
+        get_expected_path: Callable[[Path], Path] | None = None, 
+        calc_root_is_finished: Callable[[Path], bool] | None = None
+        ) -> bool | None:
     if check_log:
         is_desorbed_log = calc_root_log_shows_desorbed_cma(calc_root, cutoff)
         if not is_desorbed_log is None:
@@ -176,10 +188,16 @@ def calc_root_is_desorbed_cma(calc_root: Path, ads_mol: str, cutoff=def_cutoff, 
     return is_desorbed
 
 
-def calc_root_is_desorbed(calc_root: Path, ads_mol: str, bond_scale_factor=1.2, cutoff=def_cutoff, check_log=True, write_log=True, get_expected_path: Callable | None = None) -> bool | None:
-    is_desorbed_cov = calc_root_is_desorbed_cov_radii(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path)
+def calc_root_is_desorbed(
+        calc_root: Path, ads_mol: str, 
+        bond_scale_factor=1.2, cutoff=def_cutoff, 
+        check_log=True, write_log=True, 
+        get_expected_path: Callable[[Path], Path] | None = None, 
+        calc_root_is_finished: Callable[[Path], bool] | None = None
+        ) -> bool | None:
+    is_desorbed_cov = calc_root_is_desorbed_cov_radii(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
     if not is_desorbed_cov:
-        is_desorbed_cma = calc_root_is_desorbed_cma(calc_root, ads_mol, cutoff=cutoff, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path)
+        is_desorbed_cma = calc_root_is_desorbed_cma(calc_root, ads_mol, cutoff=cutoff, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
         if is_desorbed_cma is None:
             return is_desorbed_cov
         else:

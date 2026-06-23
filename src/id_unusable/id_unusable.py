@@ -5,7 +5,13 @@ from typing import Callable
 from pathlib import Path
 
 
-def calc_root_is_unusable(calc_root: Path, ads_mol: str, broken_bond_scale_factor=1.4, desorbed_bond_scale_factor=1.4, check_log=True, write_log=True, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
+def calc_root_is_unusable(
+        calc_root: Path, ads_mol: str, 
+        broken_bond_scale_factor=1.4, desorbed_bond_scale_factor=1.4,
+        check_log=True, write_log=True, 
+        get_expected_path: Callable[[Path], Path] | None = None, 
+        calc_root_is_finished: Callable[[Path], bool] | None = None
+        ) -> bool | None:
     """
     Determine if a calculation root is unusable based on broken or desorbed adsorbates.
     
@@ -19,7 +25,11 @@ def calc_root_is_unusable(calc_root: Path, ads_mol: str, broken_bond_scale_facto
         get_expected_path (Callable | None): Optional function to get the expected output file path from the calc_root as an argument, ie `lambda path: path / "opt" / "jdftx.out"`.
             Note: For functions using chargemol analysis, the parent of the out file is expected to hold the optional chargemol analysis files.
         calc_root_is_finished (Callable | None): Optional function to determine if the calculation is finished, ie `lambda path: (path / "opt" / "finished.txt").exists()`.
-        """
+            (Prevents prematurely logging "intact" or "adsorbed" if the calculation is still running and the output file is incomplete.)
+
+    Returns:
+        bool | None: True if the calculation is unusable (broken or desorbed), False if usable, None if the output file could not be analyzed or an unkown error arose.
+    """
     outfile_path = get_outfile_path(calc_root, get_expected_path=get_expected_path)
     if outfile_path is None:
         return None
