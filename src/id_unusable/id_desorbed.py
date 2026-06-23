@@ -1,5 +1,5 @@
 
-from id_unusable.helpers import get_ads_idcs, _log_generic, calc_root_is_finished, is_bonded, get_cma, def_cutoff, ChargemolAnalysis, is_bonded_ddec, get_outfile_path
+from id_unusable.helpers import get_ads_idcs, _log_generic, is_bonded, get_cma, def_cutoff, ChargemolAnalysis, is_bonded_ddec, get_outfile_path, should_write_log
 from pathlib import Path
 from pymatgen.io.jdftx.outputs import JDFTXOutfile
 import numpy as np
@@ -150,12 +150,11 @@ def calc_root_is_desorbed_cov_radii(calc_root: Path, ads_mol: str, bond_scale_fa
     if write_log:
         if is_desorbed:
             _log_is_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
-        else:
-            if calc_root_is_finished(calc_root):
-                _log_is_not_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
+        elif should_write_log(calc_root, calc_root_is_finished):
+            _log_is_not_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
     return is_desorbed
 
-def calc_root_is_desorbed_cma(calc_root: Path, ads_mol: str, cutoff=def_cutoff, check_log=True, write_log=True, get_expected_path: Callable | None = None) -> bool | None:
+def calc_root_is_desorbed_cma(calc_root: Path, ads_mol: str, cutoff=def_cutoff, check_log=True, write_log=True, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
     if check_log:
         is_desorbed_log = calc_root_log_shows_desorbed_cma(calc_root, cutoff)
         if not is_desorbed_log is None:
@@ -172,9 +171,8 @@ def calc_root_is_desorbed_cma(calc_root: Path, ads_mol: str, cutoff=def_cutoff, 
     if write_log:
         if is_desorbed:
             _log_is_desorbed_cma(calc_root, cutoff=cutoff)
-        else:
-            if calc_root_is_finished(calc_root):
-                _log_is_not_desorbed_cma(calc_root, cutoff=cutoff)
+        elif should_write_log(calc_root, calc_root_is_finished):
+            _log_is_not_desorbed_cma(calc_root, cutoff=cutoff)
     return is_desorbed
 
 

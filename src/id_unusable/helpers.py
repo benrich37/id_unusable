@@ -116,10 +116,6 @@ def _log_generic(log_path_true, log_path_false, bond_scale_factor: float):
     with open(log_path_true, "w") as f:
         f.write(f"{bond_scale_factor}")
 
-
-def calc_root_is_finished(calc_root: Path):
-    return (calc_root / "ion_opt" / "finished.txt").exists()
-
 def is_bonded(structure, idx1, idx2, scale_factor=1.2):
     site1 = structure.sites[idx1]
     site2 = structure.sites[idx2]
@@ -162,3 +158,9 @@ def get_outfile_path(calc_root: Path, get_expected_path: Callable | None = None)
         else:
             outfiles_by_last_modification = sorted(valid_outfiles, key=lambda f: f.stat().st_mtime, reverse=True)
             return outfiles_by_last_modification[0]
+        
+def should_write_log(calc_root: Path, calc_root_is_finished: Callable | None = None):
+    if calc_root_is_finished is None:
+        return True
+    else:
+        return calc_root_is_finished(calc_root)

@@ -1,4 +1,4 @@
-from id_unusable.helpers import get_ads_idcs, _log_generic, calc_root_is_finished, is_bonded, get_outfile_path
+from id_unusable.helpers import get_ads_idcs, _log_generic, is_bonded, get_outfile_path, should_write_log
 from pathlib import Path
 from pymatgen.io.jdftx.outputs import JDFTXOutfile
 import numpy as np
@@ -87,8 +87,7 @@ def calc_root_log_shows_broken(calc_root: Path, bond_scale_factor: float) -> boo
         return False
     return None
 
-def calc_root_is_broken_operate(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, write_log=True, get_expected_path: Callable | None = None) -> bool | None:
-    # outfile_path = calc_root / "ion_opt" / "jdftx_run" / "out"
+def calc_root_is_broken_operate(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, write_log=True, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
     outfile_path = get_outfile_path(calc_root, get_expected_path=get_expected_path)
     if not outfile_path.exists():
         return None
@@ -99,9 +98,8 @@ def calc_root_is_broken_operate(calc_root: Path, ads_mol: str, bond_scale_factor
     if write_log:
         if is_broken:
             _log_is_broken(calc_root, bond_scale_factor=bond_scale_factor)
-        else:
-            if calc_root_is_finished(calc_root):
-                _log_is_not_broken(calc_root, bond_scale_factor=bond_scale_factor)
+        elif should_write_log(calc_root, calc_root_is_finished):
+            _log_is_not_broken(calc_root, bond_scale_factor=bond_scale_factor)
     return is_broken
 
 exception_mols = [
@@ -109,12 +107,12 @@ exception_mols = [
 ]
 
 
-def calc_root_is_broken(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, check_log=True, write_log=True, test_new_algo: bool = False, get_expected_path: Callable | None = None) -> bool | None:
+def calc_root_is_broken(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, check_log=True, write_log=True, test_new_algo: bool = False, get_expected_path: Callable | None = None, calc_root_is_finished: Callable | None = None) -> bool | None:
     if ads_mol in exception_mols:
         return False
     if test_new_algo:
         is_desorbed_log = calc_root_log_shows_broken(calc_root, bond_scale_factor)
-        is_desorbed_operate = calc_root_is_broken_operate(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, write_log=False, get_expected_path=get_expected_path)
+        is_desorbed_operate = calc_root_is_broken_operate(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, write_log=False, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
         print(f" Testing for {calc_root}:")
         if is_desorbed_log is None:
             print(is_desorbed_operate)
@@ -127,5 +125,5 @@ def calc_root_is_broken(calc_root: Path, ads_mol: str, bond_scale_factor=1.4, ch
         is_desorbed_log = calc_root_log_shows_broken(calc_root, bond_scale_factor)
         if not is_desorbed_log is None:
             return is_desorbed_log
-    return calc_root_is_broken_operate(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, write_log=write_log, get_expected_path=get_expected_path)
+    return calc_root_is_broken_operate(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
 
