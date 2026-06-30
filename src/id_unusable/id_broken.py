@@ -1,4 +1,4 @@
-from id_unusable.helpers import get_ads_idcs, _log_generic, is_bonded, get_outfile_path, should_write_log
+from id_unusable.helpers import get_ads_idcs, log_generic, is_bonded, get_outfile_path, should_write_log
 from pathlib import Path
 from pymatgen.io.jdftx.outputs import JDFTXOutfile
 import numpy as np
@@ -72,12 +72,12 @@ def _calc_root_is_not_broken(calc_root: Path, bond_scale_factor: float):
 def _log_is_broken(calc_root: Path, bond_scale_factor: float):
     log_path1 = calc_root / "broken.txt"
     log_path2 = calc_root / "intact.txt"
-    _log_generic(log_path1, log_path2, bond_scale_factor)
+    log_generic(log_path1, log_path2, bond_scale_factor)
 
 def _log_is_not_broken(calc_root: Path, bond_scale_factor: float):
     log_path1 = calc_root / "broken.txt"
     log_path2 = calc_root / "intact.txt"
-    _log_generic(log_path2, log_path1, bond_scale_factor)
+    log_generic(log_path2, log_path1, bond_scale_factor)
 
 
 def calc_root_log_shows_broken(calc_root: Path, bond_scale_factor: float) -> bool | None:
@@ -109,7 +109,7 @@ def calc_root_is_broken_operate(
     return is_broken
 
 exception_mols = [
-    "O", "H", "N"
+    "O", "H", "N", "O_O",
 ]
 
 

@@ -105,12 +105,13 @@ def get_ads_idcs(structure, ads_mol: str) -> list[int] | list[list[int]]:
                 el_idcs = [idx for idx, site in enumerate(structure.sites) if site.species_string == el_type]
                 start_idx = -(count + upcoming_el_type_counts[el_type])
                 end_idx = -(upcoming_el_type_counts[el_type]) if upcoming_el_type_counts[el_type] > 0 else None
-                ads_idcs.append(el_idcs[start_idx:end_idx])
+                # ads_idcs.append(el_idcs[start_idx:end_idx])
+                ads_idcs.extend(el_idcs[start_idx:end_idx])
             ads_idcss.append(ads_idcs)
     return ads_idcss
 
 
-def _log_generic(log_path_true, log_path_false, bond_scale_factor: float):
+def log_generic(log_path_true, log_path_false, bond_scale_factor: float):
     if log_path_false.exists():
         log_path_false.unlink()
     with open(log_path_true, "w") as f:

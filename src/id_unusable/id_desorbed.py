@@ -1,5 +1,5 @@
 
-from id_unusable.helpers import get_ads_idcs, _log_generic, is_bonded, get_cma, def_cutoff, ChargemolAnalysis, is_bonded_ddec, get_outfile_path, should_write_log
+from id_unusable.helpers import get_ads_idcs, log_generic, is_bonded, get_cma, def_cutoff, ChargemolAnalysis, is_bonded_ddec, get_outfile_path, should_write_log
 from pathlib import Path
 from pymatgen.io.jdftx.outputs import JDFTXOutfile
 import numpy as np
@@ -53,10 +53,14 @@ def cma_is_desorbed(cma: ChargemolAnalysis, ads_mol: str, cutoff=def_cutoff):
             other_ads_idcs = [idx for j, ads_idcs2 in enumerate(ads_idcss) if j != i for idx in ads_idcs2]
             surf_idcs = get_surf_idcs(cma.structure, ads_idcs)
             surf_idcs = [idx for idx in surf_idcs if idx not in other_ads_idcs]
+            desorbed = False
             for ads_idx in ads_idcs:
                 if any(is_bonded_ddec(cma, ads_idx, surf_idx, cutoff=cutoff) for surf_idx in surf_idcs):
                     break
-            return True
+                desorbed = True
+            # return True
+            if desorbed:
+                return True
         return False
 
 
@@ -80,12 +84,12 @@ def _calc_root_is_not_desorbed(calc_root: Path, bond_scale_factor: float):
 def _log_is_desorbed(calc_root: Path, bond_scale_factor: float):
     log_path1 = calc_root / "desorbed.txt"
     log_path2 = calc_root / "adsorbed.txt"
-    _log_generic(log_path1, log_path2, bond_scale_factor)
+    log_generic(log_path1, log_path2, bond_scale_factor)
 
 def _log_is_not_desorbed(calc_root: Path, bond_scale_factor: float):
     log_path1 = calc_root / "desorbed.txt"
     log_path2 = calc_root / "adsorbed.txt"
-    _log_generic(log_path2, log_path1, bond_scale_factor)
+    log_generic(log_path2, log_path1, bond_scale_factor)
 
 
 ###
@@ -109,12 +113,12 @@ def _calc_root_is_not_desorbed_cma(calc_root: Path, cutoff: float):
 def _log_is_desorbed_cma(calc_root: Path, cutoff: float):
     log_path1 = calc_root / "desorbed_cma.txt"
     log_path2 = calc_root / "adsorbed_cma.txt"
-    _log_generic(log_path1, log_path2, cutoff)
+    log_generic(log_path1, log_path2, cutoff)
 
 def _log_is_not_desorbed_cma(calc_root: Path, cutoff: float):
     log_path1 = calc_root / "desorbed_cma.txt"
     log_path2 = calc_root / "adsorbed_cma.txt"
-    _log_generic(log_path2, log_path1, cutoff)
+    log_generic(log_path2, log_path1, cutoff)
 
 ###
 
