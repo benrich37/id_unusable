@@ -173,6 +173,7 @@ def calc_root_is_desorbed_cov_radii(
             _log_is_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
         elif should_write_log(calc_root, calc_root_is_finished):
             _log_is_not_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
+        else:
             _clear_desorbed_log(calc_root, cma=False)
     return is_desorbed
 
@@ -201,6 +202,7 @@ def calc_root_is_desorbed_cma(
             _log_is_desorbed_cma(calc_root, cutoff=cutoff)
         elif should_write_log(calc_root, calc_root_is_finished):
             _log_is_not_desorbed_cma(calc_root, cutoff=cutoff)
+        else:
             _clear_desorbed_log(calc_root, cma=True)
     return is_desorbed
 

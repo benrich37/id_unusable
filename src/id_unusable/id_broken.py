@@ -27,6 +27,9 @@ def structure_is_broken(structure, initial_structure, ads_mol: str, bond_scale_f
             return False
         for ads_idx in ads_idcs:
             other_ads_idcs = [idx for idx in ads_idcs if idx != ads_idx]
+            if not any(is_bonded(structure, ads_idx, idx, scale_factor=bond_scale_factor) for idx in other_ads_idcs):
+                print(f"structure of composition {structure.composition} is broken: ads_idx={ads_idx} ({structure[ads_idx]}) has no bonds to other ads atoms")
+                return True
             initially_bonded_idcs = [idx for idx in other_ads_idcs if is_bonded(initial_structure, ads_idx, idx, scale_factor=bond_scale_factor)]
             currently_bonded_idcs = [idx for idx in other_ads_idcs if is_bonded(structure, ads_idx, idx, scale_factor=bond_scale_factor)]
             if len(initially_bonded_idcs) == 0:
@@ -43,6 +46,10 @@ def structure_is_broken(structure, initial_structure, ads_mol: str, bond_scale_f
         for i, ads_idcs in enumerate(ads_idcss):
             other_ads_idcs = [idx for j, ads_idcs2 in enumerate(ads_idcss) if j != i for idx in ads_idcs2]
             for ads_idx in ads_idcs:
+                other_internal_ads_idcs = [idx for idx in ads_idcs if idx != ads_idx]
+                if not any(is_bonded(structure, ads_idx, idx, scale_factor=bond_scale_factor) for idx in other_internal_ads_idcs):
+                    print(f"structure of composition {structure.composition} is broken: ads_idx={ads_idx} ({structure[ads_idx]}) has no bonds to other ads atoms in the same ads_mol")
+                    return True
                 # Check the other ads_mols to detect if unwanted bonds form between adsorbates
                 other_mutual_ads_idcs = [idx for idx in ads_idcs if idx != ads_idx] + other_ads_idcs
                 initially_bonded_idcs = [idx for idx in other_mutual_ads_idcs if is_bonded(initial_structure, ads_idx, idx, scale_factor=bond_scale_factor)]
