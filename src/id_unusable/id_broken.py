@@ -13,6 +13,7 @@ def surf_of_structure_is_broken(structure, ads_idcs: list[int], bond_scale_facto
     for surf_idx in surf_idcs:
         other_surfs_idcs = [idx for idx in surf_idcs if idx != surf_idx]
         if not any(is_bonded(structure, surf_idx, idx, scale_factor=bond_scale_factor) for idx in other_surfs_idcs):
+            print(f"surf of structure of composition {structure.composition} is broken: surf_idx={surf_idx} ({structure[surf_idx]})has no bonds to other surf atoms")
             return True
     return False
     
@@ -32,13 +33,14 @@ def structure_is_broken(structure, initial_structure, ads_mol: str, bond_scale_f
                 continue
             else:
                 if len(set(initially_bonded_idcs) - set(currently_bonded_idcs)) > 0:
+                    print(f"structure of composition {structure.composition} is broken: ads_idx={ads_idx} ({structure[ads_idx]}) has lost bonds to other ads atoms")
+                    print(f"  initially_bonded_idcs={initially_bonded_idcs}")
+                    print(f"  currently_bonded_idcs={currently_bonded_idcs}")
                     return True
         return False
     else:
         ads_idcss = get_ads_idcs(structure, ads_mol)
         for i, ads_idcs in enumerate(ads_idcss):
-            # if len(ads_idcs) < 2:
-            #     break
             other_ads_idcs = [idx for j, ads_idcs2 in enumerate(ads_idcss) if j != i for idx in ads_idcs2]
             for ads_idx in ads_idcs:
                 # Check the other ads_mols to detect if unwanted bonds form between adsorbates
@@ -49,6 +51,10 @@ def structure_is_broken(structure, initial_structure, ads_mol: str, bond_scale_f
                     continue
                 else:
                     if len(set(initially_bonded_idcs) - set(currently_bonded_idcs)) > 0:
+                        print(f"structure of composition {structure.composition} is broken: ads_idx={ads_idx} ({structure[ads_idx]}) has lost bonds to other ads atoms")
+                        print(f"  initially_bonded_idcs={initially_bonded_idcs}")
+                        print(f"  currently_bonded_idcs={currently_bonded_idcs}")
+                        print(f"  ads_idcs={ads_idcs}")
                         return True
         return False
 
@@ -109,7 +115,7 @@ def calc_root_is_broken_operate(
     return is_broken
 
 exception_mols = [
-    "O", "H", "N", "O_O",
+    "O", "H", "N",
 ]
 
 

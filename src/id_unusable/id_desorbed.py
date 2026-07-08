@@ -53,13 +53,15 @@ def cma_is_desorbed(cma: ChargemolAnalysis, ads_mol: str, cutoff=def_cutoff):
             other_ads_idcs = [idx for j, ads_idcs2 in enumerate(ads_idcss) if j != i for idx in ads_idcs2]
             surf_idcs = get_surf_idcs(cma.structure, ads_idcs)
             surf_idcs = [idx for idx in surf_idcs if idx not in other_ads_idcs]
-            desorbed = False
+            # desorbed = False
+            adsorbed = False
             for ads_idx in ads_idcs:
                 if any(is_bonded_ddec(cma, ads_idx, surf_idx, cutoff=cutoff) for surf_idx in surf_idcs):
+                    adsorbed = True
                     break
-                desorbed = True
+                # desorbed = True
             # return True
-            if desorbed:
+            if not adsorbed:
                 return True
         return False
 
@@ -120,6 +122,15 @@ def _log_is_not_desorbed_cma(calc_root: Path, cutoff: float):
     log_path2 = calc_root / "adsorbed_cma.txt"
     log_generic(log_path2, log_path1, cutoff)
 
+
+def _clear_desorbed_log(calc_root: Path, cma=False):
+    log_path1 = calc_root / f"desorbed{'_cma' if cma else ''}.txt"
+    log_path2 = calc_root / f"adsorbed{'_cma' if cma else ''}.txt"
+    for path in [log_path1, log_path2]:
+        if path.exists():
+            path.unlink()
+    # log_generic(log_path2, log_path1, cutoff)
+
 ###
 
 
@@ -162,6 +173,7 @@ def calc_root_is_desorbed_cov_radii(
             _log_is_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
         elif should_write_log(calc_root, calc_root_is_finished):
             _log_is_not_desorbed(calc_root, bond_scale_factor=bond_scale_factor)
+            _clear_desorbed_log(calc_root, cma=False)
     return is_desorbed
 
 def calc_root_is_desorbed_cma(
@@ -189,6 +201,7 @@ def calc_root_is_desorbed_cma(
             _log_is_desorbed_cma(calc_root, cutoff=cutoff)
         elif should_write_log(calc_root, calc_root_is_finished):
             _log_is_not_desorbed_cma(calc_root, cutoff=cutoff)
+            _clear_desorbed_log(calc_root, cma=True)
     return is_desorbed
 
 
@@ -197,11 +210,14 @@ def calc_root_is_desorbed(
         bond_scale_factor=1.2, cutoff=def_cutoff, 
         check_log=True, write_log=True, 
         get_expected_path: Callable[[Path], Path] | None = None, 
-        calc_root_is_finished: Callable[[Path], bool] | None = None
+        calc_root_is_finished: Callable[[Path], bool] | None = None,
+        skip_cma: bool = False
         ) -> bool | None:
     is_desorbed_cov = calc_root_is_desorbed_cov_radii(calc_root, ads_mol, bond_scale_factor=bond_scale_factor, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
     if not is_desorbed_cov:
-        is_desorbed_cma = calc_root_is_desorbed_cma(calc_root, ads_mol, cutoff=cutoff, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
+        is_desorbed_cma = None
+        if not skip_cma:
+            is_desorbed_cma = calc_root_is_desorbed_cma(calc_root, ads_mol, cutoff=cutoff, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
         if is_desorbed_cma is None:
             return is_desorbed_cov
         else:

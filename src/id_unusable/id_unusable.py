@@ -7,7 +7,7 @@ from pathlib import Path
 
 def calc_root_is_unusable(
         calc_root: Path, ads_mol: str, 
-        broken_bond_scale_factor=1.4, desorbed_bond_scale_factor=1.4,
+        broken_bond_scale_factor=1.4, desorbed_bond_scale_factor=1.5,
         check_log=True, write_log=True, 
         get_expected_path: Callable[[Path], Path] | None = None, 
         calc_root_is_finished: Callable[[Path], bool] | None = None
@@ -30,22 +30,35 @@ def calc_root_is_unusable(
     Returns:
         bool | None: True if the calculation is unusable (broken or desorbed), False if usable, None if the output file could not be analyzed or an unkown error arose.
     """
+    # if calc_root.name.startswith("_"):
+    #     return True
+    path_parts = [p for p in calc_root.parts]
+    if any(part.startswith("_") for part in path_parts):
+        print(f"calc_root {calc_root} is unusable because it contains a directory starting with '_'")
+        return True
     outfile_path = get_outfile_path(calc_root, get_expected_path=get_expected_path)
     if outfile_path is None:
+        print(f"calc_root {calc_root} is unusable because get_expected_path returned None")
         return None
     elif not outfile_path.exists():
+        print(f"calc_root {calc_root} is unusable because expected output file {outfile_path} does not exist")
         return True
     try:
         is_broken = calc_root_is_broken(calc_root, ads_mol, bond_scale_factor=broken_bond_scale_factor, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
         if is_broken is None:
+            print(f"calc_root {calc_root} is unusable because calc_root_is_broken returned None")
             return None
         elif is_broken:
+            print(f"calc_root {calc_root} is unusable because it is broken")
             return True
         is_desorbed = calc_root_is_desorbed(calc_root, ads_mol, bond_scale_factor=desorbed_bond_scale_factor, check_log=check_log, write_log=write_log, get_expected_path=get_expected_path, calc_root_is_finished=calc_root_is_finished)
         if is_desorbed is None:
+            print(f"calc_root {calc_root} is unusable because calc_root_is_desorbed returned None")
             return None
         elif is_desorbed:
+            print(f"calc_root {calc_root} is unusable because it is desorbed")
             return True
         return False
     except Exception as e:
+        print(f"Error checking if calc_root {calc_root} is unusable: {e}")
         return True

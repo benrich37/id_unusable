@@ -59,6 +59,7 @@ ads_mol_dict = {
     "NO2H": {"N": 1, "O": 2, "H": 1},
     "NO": {"N": 1, "O": 1},
     "NOH": {"N": 1, "O": 1, "H": 1},
+    "HNO": {"H": 1, "N": 1, "O": 1},
     "N": {"N": 1},
     "NH": {"N": 1, "H": 1},
     "NH2": {"N": 1, "H": 2},
@@ -67,6 +68,33 @@ ads_mol_dict = {
     "surfs": {},
     "clean": {},
 }
+
+def get_n_ads_atom_dict(ads_mol: str) -> dict[str, int]:
+    if not "_" in ads_mol:
+        return ads_mol_dict[ads_mol]
+    else:
+        count_dict = {}
+        ads_mols = ads_mol.split("_")
+        for ads_mol in ads_mols:
+            el_type_counts = ads_mol_dict[ads_mol]
+            for el_type, count in el_type_counts.items():
+                if el_type in count_dict:
+                    count_dict[el_type] += count
+                else:
+                    count_dict[el_type] = count
+        return count_dict
+
+def get_super_ads_mol_count_dict(ads_mol: str) -> dict[str, int]:
+    ads_mols = ads_mol.split("_")
+    count_dict = {}
+    for ads_mol in ads_mols:
+        el_type_counts = ads_mol_dict[ads_mol]
+        for el_type, count in el_type_counts.items():
+            if el_type in count_dict:
+                count_dict[el_type] += count
+            else:
+                count_dict[el_type] = count
+    return count_dict
 
 def get_ads_idcs_singular(structure, ads_mol: str):
     el_type_counts = ads_mol_dict[ads_mol]
@@ -87,7 +115,7 @@ def get_ads_idcs(structure, ads_mol: str) -> list[int] | list[list[int]]:
     else:
         ads_idcss = []
         ads_mols = ads_mol.split("_")
-        el_type_countss = [ads_mol_dict[ads_mol] for ads_mol in ads_mols]
+        el_type_countss = [ads_mol_dict[ads_mol].copy() for ads_mol in ads_mols]
         all_els = list(set([el for el_type_counts in el_type_countss for el in el_type_counts.keys()]))
         for el in all_els:
             if not el in structure.composition:
@@ -131,6 +159,11 @@ def expected_bond_length(structure, idx1, idx2):
     site2 = structure.sites[idx2]
     el1 = site1.species_string
     el2 = site2.species_string
+    r1 = covalent_radii[Element(el1).Z]
+    r2 = covalent_radii[Element(el2).Z]
+    return r1 + r2
+
+def expected_bond_length_for_el_pair(el1, el2):
     r1 = covalent_radii[Element(el1).Z]
     r2 = covalent_radii[Element(el2).Z]
     return r1 + r2
