@@ -96,8 +96,7 @@ def get_super_ads_mol_count_dict(ads_mol: str) -> dict[str, int]:
                 count_dict[el_type] = count
     return count_dict
 
-def get_ads_idcs_singular(structure, ads_mol: str):
-    el_type_counts = ads_mol_dict[ads_mol]
+def get_ads_idcs_singular_from_el_type_counts(structure, el_type_counts: dict[str, int]) -> list[int]:
     ads_idcs = []
     for el_type, count in el_type_counts.items():
         if structure.composition.get(el_type, 0) < count:
@@ -109,34 +108,42 @@ def get_ads_idcs_singular(structure, ads_mol: str):
             ads_idcs.append(el_idcs[-(i+1)])
     return ads_idcs
 
+def get_ads_idcs_singular(structure, ads_mol: str):
+    el_type_counts = ads_mol_dict[ads_mol]
+    return get_ads_idcs_singular_from_el_type_counts(structure, el_type_counts)
+
+
+def get_ads_idcs_multi(structure, ads_mol: str) -> list[list[int]]:
+    ads_idcss = []
+    ads_mols = ads_mol.split("_")
+    el_type_countss = [ads_mol_dict[ads_mol].copy() for ads_mol in ads_mols]
+    all_els = list(set([el for el_type_counts in el_type_countss for el in el_type_counts.keys()]))
+    for el in all_els:
+        if not el in structure.composition:
+            raise ValueError(f"Structure does not contain element {el} required for adsorbate {ads_mol}")
+    for el in all_els:
+        for el_type_counts in el_type_countss:
+            if el not in el_type_counts:
+                el_type_counts[el] = 0
+    for i, el_type_counts in enumerate(el_type_countss):
+        ads_idcs = []
+        upcoming_el_type_counts = {el: sum([el_type_counts[el] for el_type_counts in el_type_countss[i+1:]]) for el in all_els}
+        for el_type, count in el_type_counts.items():
+            if count == 0:
+                continue
+            el_idcs = [idx for idx, site in enumerate(structure.sites) if site.species_string == el_type]
+            start_idx = -(count + upcoming_el_type_counts[el_type])
+            end_idx = -(upcoming_el_type_counts[el_type]) if upcoming_el_type_counts[el_type] > 0 else None
+            # ads_idcs.append(el_idcs[start_idx:end_idx])
+            ads_idcs.extend(el_idcs[start_idx:end_idx])
+        ads_idcss.append(ads_idcs)
+    return ads_idcss
+
 def get_ads_idcs(structure, ads_mol: str) -> list[int] | list[list[int]]:
     if not "_" in ads_mol:
         return get_ads_idcs_singular(structure, ads_mol)
     else:
-        ads_idcss = []
-        ads_mols = ads_mol.split("_")
-        el_type_countss = [ads_mol_dict[ads_mol].copy() for ads_mol in ads_mols]
-        all_els = list(set([el for el_type_counts in el_type_countss for el in el_type_counts.keys()]))
-        for el in all_els:
-            if not el in structure.composition:
-                raise ValueError(f"Structure does not contain element {el} required for adsorbate {ads_mol}")
-        for el in all_els:
-            for el_type_counts in el_type_countss:
-                if el not in el_type_counts:
-                    el_type_counts[el] = 0
-        for i, el_type_counts in enumerate(el_type_countss):
-            ads_idcs = []
-            upcoming_el_type_counts = {el: sum([el_type_counts[el] for el_type_counts in el_type_countss[i+1:]]) for el in all_els}
-            for el_type, count in el_type_counts.items():
-                if count == 0:
-                    continue
-                el_idcs = [idx for idx, site in enumerate(structure.sites) if site.species_string == el_type]
-                start_idx = -(count + upcoming_el_type_counts[el_type])
-                end_idx = -(upcoming_el_type_counts[el_type]) if upcoming_el_type_counts[el_type] > 0 else None
-                # ads_idcs.append(el_idcs[start_idx:end_idx])
-                ads_idcs.extend(el_idcs[start_idx:end_idx])
-            ads_idcss.append(ads_idcs)
-    return ads_idcss
+        return get_ads_idcs_multi(structure, ads_mol)
 
 
 def log_generic(log_path_true, log_path_false, bond_scale_factor: float):
